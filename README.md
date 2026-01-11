@@ -53,7 +53,7 @@ This grants the app permission to intercept key events globally.
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/chepil/HyTalkPTT.git
    cd HyTalkPTT
    ```
 
