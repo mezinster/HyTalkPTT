@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">HyTalkPTT</string>
+    <string name="accessibility_description">HyTalk PTT Automation Service</string>
+</resources>

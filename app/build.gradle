@@ -1,0 +1,55 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 22
+    namespace 'ru.chepil.hytalkptt'
+
+    defaultConfig {
+        applicationId "ru.chepil.hytalkptt"
+        minSdkVersion 22
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    lint {
+        abortOnError false
+        disable 'ExpiredTargetSdkVersion'
+    }
+
+    signingConfigs {
+        // Using debug keystore for both build types
+        debug {
+            // Debug keystore is located by default at ~/.android/debug.keystore
+            // Android Studio automatically uses it for debug builds
+        }
+        release {
+            // Using the same debug keystore for release (for development only)
+            // For production, use a separate release keystore!
+            storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            // proguardFiles not needed since minifyEnabled is false
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:22.2.1'
+}
