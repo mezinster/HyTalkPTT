@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             
-            // Launched via PTT button - continue with normal PTT logic
+            // Launched via PTT button (or when app process was restarted)
+            // Launch HyTalk immediately and move MainActivity to background
             // Hide setup buttons (they should only be visible in setup mode)
             Button btnProgrammableKeys = (Button) findViewById(R.id.btn_programmable_keys);
             Button btnAccessibility = (Button) findViewById(R.id.btn_accessibility);
@@ -89,8 +90,12 @@ public class MainActivity extends AppCompatActivity {
             isPTTButtonPressed = true;
             wasPTTButtonPressed = false; // Reset to detect new press
 
-            // Launch HyTalk
+            // Launch HyTalk immediately (don't wait for window focus)
+            // PTTAccessibilityService should have already launched it, but we ensure it's launched here too
             launchHyTalkIfNeeded();
+            
+            // Immediately move to background so HyTalk can take focus
+            moveTaskToBack(true);
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate", e);
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();

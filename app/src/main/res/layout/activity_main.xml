@@ -4,40 +4,46 @@
     android:fillViewport="true">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp"
-        android:gravity="center_vertical">
+        android:background="#000000"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="24dp">
 
         <TextView
             android:id="@+id/tv_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Waiting for PTT press..."
-            android:textSize="16sp"
-            android:textAlignment="center"
-            android:padding="16dp"
             android:layout_marginBottom="24dp"
-            android:gravity="center" />
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Waiting for PTT press..."
+            android:textAlignment="center"
+            android:textColor="#424141"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btn_programmable_keys"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:textColor="#424141"
+            android:background="#000000"
             android:text="Configure Programmable Keys"
             android:textSize="16sp"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp"
             android:visibility="gone" />
 
         <Button
             android:id="@+id/btn_accessibility"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textColor="#424141"
+            android:background="#000000"
             android:text="Configure Accessibility"
             android:textSize="16sp"
-            android:padding="16dp"
             android:visibility="gone" />
 
     </LinearLayout>
