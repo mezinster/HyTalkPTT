@@ -144,6 +144,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Tested with:
 
-Motorola LEX F10, 
-UROVO DT30, 
-Ulefone models 26WT, 20WT, 13
+- Motorola LEX F10, 
+- UROVO DT30, 
+- Ulefone models 26WT, 20WT, 13
