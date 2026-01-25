@@ -48,18 +48,14 @@ public class MainActivity extends AppCompatActivity {
             // Set content view first (needed for checking accessibility service)
             setContentView(R.layout.activity_main);
             
+            // Ensure default PTT keycode (228) in sandbox if not set
+            PttPreferences.ensureDefault(this);
+            
             // Check if accessibility service is enabled
             boolean isAccessibilityServiceEnabled = isAccessibilityServiceEnabled();
             
-            // If launched from launcher and accessibility service is NOT enabled, show setup instructions
-            if (isLauncherLaunch && !isPTTButtonPressed && !isAccessibilityServiceEnabled) {
-                // Launched from launcher without PTT button press and accessibility service is not enabled
-                // Show setup instructions on screen
-                Log.d(TAG, "Launched from launcher - accessibility service not enabled, showing setup instructions");
-                showSetupInstructions();
-                return; // Exit early, don't continue with PTT logic
-            }
-            
+            setupSettingsButtons();
+
             // If launched from launcher but accessibility service IS enabled, just exit
             if (isLauncherLaunch && !isPTTButtonPressed && isAccessibilityServiceEnabled) {
                 Log.d(TAG, "Launched from launcher - accessibility service is enabled, exiting");
@@ -72,18 +68,15 @@ public class MainActivity extends AppCompatActivity {
             // Hide setup buttons (they should only be visible in setup mode)
             Button btnProgrammableKeys = (Button) findViewById(R.id.btn_programmable_keys);
             Button btnAccessibility = (Button) findViewById(R.id.btn_accessibility);
+            Button btnPttKey = (Button) findViewById(R.id.btn_ptt_key);
             if (btnProgrammableKeys != null) {
-                btnProgrammableKeys.setVisibility(View.GONE);
+                btnProgrammableKeys.setVisibility(View.VISIBLE);
             }
             if (btnAccessibility != null) {
-                btnAccessibility.setVisibility(View.GONE);
+                btnAccessibility.setVisibility(View.VISIBLE);
             }
-
-            TextView statusText = (TextView) findViewById(R.id.tv_status);
-            if (statusText != null) {
-                statusText.setText("PTT pressed! Launching HyTalk...");
-            } else {
-                Log.e(TAG, "Status TextView not found!");
+            if (btnPttKey != null) {
+                btnPttKey.setVisibility(View.VISIBLE);
             }
 
             // Set flag to indicate PTT button is pressed
@@ -137,31 +130,15 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
-    
+
     /**
      * Shows setup instructions on the screen.
      * Displays instructions to configure Programmable Keys and Accessibility.
      */
-    private void showSetupInstructions() {
-        TextView statusText = (TextView) findViewById(R.id.tv_status);
+    private void setupSettingsButtons() {
         Button btnProgrammableKeys = (Button) findViewById(R.id.btn_programmable_keys);
         Button btnAccessibility = (Button) findViewById(R.id.btn_accessibility);
-        
-        if (statusText != null) {
-            String instructions = "To use this app, you need to configure:\n\n" +
-                                "1) Programmable Keys\n" +
-                                "   Settings → Programmable Keys →\n" +
-                                "   Select PTT Key app → HyTalkPTT\n\n" +
-                                "2) Accessibility\n" +
-                                "   Settings → Accessibility →\n" +
-                                "   HyTalkPTT → enable the toggle";
-            
-            statusText.setText(instructions);
-            statusText.setTextSize(16);
-            Log.d(TAG, "Setup instructions displayed on screen");
-        } else {
-            Log.e(TAG, "Status TextView not found - cannot show setup instructions");
-        }
+        Button btnPttKey = (Button) findViewById(R.id.btn_ptt_key);
         
         // Show and configure buttons
         if (btnProgrammableKeys != null) {
@@ -183,7 +160,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-        
+
+        if (btnPttKey != null) {
+            btnPttKey.setVisibility(View.VISIBLE);
+            btnPttKey.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openPttKeyButton();
+                }
+            });
+        }
+
         // Try to enable accessibility service (may not work, but we try)
         enableAccessibilityService();
     }
@@ -214,6 +201,17 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error opening Accessibility settings", e);
             Toast.makeText(this, "Failed to open Accessibility settings", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openPttKeyButton() {
+        try {
+            Intent intent = new Intent(this, PttKeySetupActivity.class);
+            startActivity(intent);
+            Log.d(TAG, "Opened PTT Key setup");
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening PTT key settings", e);
+            Toast.makeText(this, "Failed to open PTT key settings", Toast.LENGTH_SHORT).show();
         }
     }
     
@@ -306,10 +304,6 @@ public class MainActivity extends AppCompatActivity {
         
         // Always try to launch/bring HyTalk to foreground when PTT is pressed
         // Intent flags will bring it to foreground if already running, or launch if not
-        TextView statusText = (TextView) findViewById(R.id.tv_status);
-        if (statusText != null) {
-            statusText.setText("PTT pressed! Launching HyTalk...");
-        }
 
         // Try to find HyTalk app
         Intent launchIntent = findHyTalkApp();
@@ -323,16 +317,13 @@ public class MainActivity extends AppCompatActivity {
             try {
                 startActivity(launchIntent);
                 hyTalkLaunched = true; // Mark as launched
-                
-                if (statusText != null) {
-                    statusText.setText("PTT active - Release button to stop");
-                }
-                
+
                 // Move MainActivity to background so HyTalk stays in foreground
                 moveTaskToBack(true);
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start HyTalk app", e);
                 Toast.makeText(this, "Failed to launch: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                TextView statusText = (TextView) findViewById(R.id.tv_status);
                 if (statusText != null) {
                     statusText.setText("Failed to launch!\n" + e.getMessage());
                 }
@@ -343,6 +334,7 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "HyTalk app not found!");
             String message = "HyTalk app not found! Check logs for installed packages.";
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            TextView statusText = (TextView) findViewById(R.id.tv_status);
             if (statusText != null) {
                 statusText.setText("HyTalk app not found!\nCheck logcat for details");
             }

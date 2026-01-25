@@ -18,13 +18,14 @@ import java.util.List;
 public class PTTAccessibilityService extends AccessibilityService {
 
     private static final String TAG = "PTTAccessibilityService";
-    private static final int PTT_KEYCODE1 = 228; // Physical PTT button keycode (Motorola LEX F10)
-    private static final int PTT_KEYCODE2 = 520; //Scanner Uravo DT 30
-    private static final int PTT_KEYCODE3 = 521; //Scanner Uravo DT 30
-    private static final int PTT_KEYCODE4 = 522; //Scanner Uravo DT 30
-    private static final int PTT_KEYCODE5 = 381; //Ulefone Armor 26 WT
-    private static final int PTT_KEYCODE6 = 301; //Ulefone Armor 20 WT
-    private static final int PTT_KEYCODE7 = 131; //Ulefone Armor 18T
+    // Device-specific PTT keycodes (for reference only; actual keycode comes from SharedPreferences)
+    //private static final int PTT_KEYCODE1 = 228; // Motorola LEX F10
+    //private static final int PTT_KEYCODE2 = 520; // Scanner Urovo DT 30
+    //private static final int PTT_KEYCODE3 = 521; // Scanner Urovo DT 30
+    //private static final int PTT_KEYCODE4 = 522; // Scanner Urovo DT 30
+    //private static final int PTT_KEYCODE5 = 381; // Ulefone Armor 26 WT
+    //private static final int PTT_KEYCODE6 = 301; // Ulefone Armor 20 WT
+    //private static final int PTT_KEYCODE7 = 131; // Ulefone Armor 18T
     private static final int REMAPPED_PTT_KEYCODE = 142; // Keycode that HyTalk expects (F12)
     
     // InputManager for key remapping on newer Android versions
@@ -160,69 +161,27 @@ public class PTTAccessibilityService extends AccessibilityService {
     protected boolean onKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();
         int action = event.getAction();
-        
-        // Handle PTT button events
-        if (keyCode == PTT_KEYCODE1 || keyCode == PTT_KEYCODE2 || keyCode == PTT_KEYCODE3 || keyCode == PTT_KEYCODE4 || keyCode == PTT_KEYCODE5 || keyCode == PTT_KEYCODE6 || keyCode == PTT_KEYCODE7) {
-            boolean isScannerKey = (keyCode == PTT_KEYCODE2 || keyCode == PTT_KEYCODE3 || keyCode == PTT_KEYCODE4 || keyCode == PTT_KEYCODE5 || keyCode == PTT_KEYCODE6 || keyCode == PTT_KEYCODE7);
-            // Remap scanner keys (520, 521, 522) to keycode 142 on Android > SDK 22
-            boolean shouldRemap = isScannerKey && Build.VERSION.SDK_INT > 22;
-            
-            if (action == KeyEvent.ACTION_DOWN) {
-                Log.d(TAG, "PTT button pressed (onKeyEvent - ACTION_DOWN), keyCode=" + keyCode);
-                MainActivity.isPTTButtonPressed = true;
-                
-                // Launch HyTalk directly (or bring to foreground if already running)
-                launchHyTalkIfNeeded();
-                
-                // For scanner keys (520, 521, 522) on Android > 22, try to remap to keycode 142
-                if (shouldRemap) {
-                    boolean injected = injectKeyEvent(REMAPPED_PTT_KEYCODE, KeyEvent.ACTION_DOWN);
-                    if (injected) {
-                        Log.d(TAG, "Remapped keycode " + keyCode + " -> " + REMAPPED_PTT_KEYCODE + " (injected)");
-                        // Also send broadcast intent as fallback
-                        if (event.getRepeatCount() == 0) {
-                            sendPTTBroadcast(true);
-                        }
-                        return true; // Consume the original event
-                    } else {
-                        Log.d(TAG, "Key remapping injection failed, using broadcast intent fallback");
-                        // Fall through to broadcast intent method
-                    }
-                }
-                
-                // Send Broadcast Intent for HyTalk (based on pttremap app logic)
-                // HyTalk listens to "android.intent.action.PTT_DOWN" broadcast
-                if (event.getRepeatCount() == 0) {
-                    sendPTTBroadcast(true);
-                }
-                
-                return true; // Consume the event - don't pass it to other apps
-            } else if (action == KeyEvent.ACTION_UP) {
-                Log.d(TAG, "PTT button released (onKeyEvent - ACTION_UP), keyCode=" + keyCode);
-                MainActivity.isPTTButtonPressed = false;
-                
-                // For scanner keys (520, 521, 522) on Android > 22, try to remap to keycode 142
-                if (shouldRemap) {
-                    boolean injected = injectKeyEvent(REMAPPED_PTT_KEYCODE, KeyEvent.ACTION_UP);
-                    if (injected) {
-                        Log.d(TAG, "Remapped keycode " + keyCode + " -> " + REMAPPED_PTT_KEYCODE + " (injected)");
-                        // Also send broadcast intent as fallback
-                        sendPTTBroadcast(false);
-                        return true; // Consume the original event
-                    } else {
-                        Log.d(TAG, "Key remapping injection failed, using broadcast intent fallback");
-                        // Fall through to broadcast intent method
-                    }
-                }
-                
-                // Send Broadcast Intent for HyTalk (based on pttremap app logic)
-                sendPTTBroadcast(false);
-                
-                return true; // Consume the event - don't pass it to other apps
-            }
+        int pttKeyCode = PttPreferences.getPttKeyCode(this);
+
+        if (keyCode != pttKeyCode) {
+            return false;
         }
-        
-        // Don't intercept other keys
+
+        if (action == KeyEvent.ACTION_DOWN) {
+            Log.d(TAG, "PTT button pressed (onKeyEvent - ACTION_DOWN), keyCode=" + keyCode);
+            MainActivity.isPTTButtonPressed = true;
+            launchHyTalkIfNeeded();
+            if (event.getRepeatCount() == 0) {
+                sendPTTBroadcast(true);
+            }
+            return true;
+        } else if (action == KeyEvent.ACTION_UP) {
+            Log.d(TAG, "PTT button released (onKeyEvent - ACTION_UP), keyCode=" + keyCode);
+            MainActivity.isPTTButtonPressed = false;
+            sendPTTBroadcast(false);
+            return true;
+        }
+
         return false;
     }
     
