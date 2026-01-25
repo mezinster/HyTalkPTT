@@ -142,7 +142,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 [Denis Chepil/den@chepil.ru]
 
-### Tested with:
+## Tested with:
 
 Motorola LEX F10, 
 UROVO DT30, 
